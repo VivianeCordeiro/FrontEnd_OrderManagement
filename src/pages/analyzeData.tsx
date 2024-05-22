@@ -1,101 +1,70 @@
-// import { Chart } from 'chart.js';
-// import React, { useEffect } from 'react';
-// //import Chart from 'chart.js/auto'; // Importe o Chart.js
-
-// type Order = {
-//     id: number;
-//     productName: string;
-//     quantity: number;
-//     price: number;
-// };
-
-// const AnalyzeData: React.FC = () => {
-//     useEffect(() => {
-//         // Cria o gráfico de pizza
-//         const ctx = document.getElementById('pizzaChart') as HTMLCanvasElement;
-//         new Chart(ctx, {
-//             type: 'doughnut',
-//             data: {
-//                 labels: ['Produto A', 'Produto B', 'Produto C'],
-//                 datasets: [{
-//                     label: 'Pedidos',
-//                     data: [30, 20, 50],
-//                     backgroundColor: [
-//                         'rgba(255, 99, 132, 0.6)',
-//                         'rgba(54, 162, 235, 0.6)',
-//                         'rgba(255, 206, 86, 0.6)',
-//                     ],
-//                     hoverOffset: 4
-//                 }]
-//             }
-//         });
-//     }, []);
-
-//     const orders: Order[] = [
-//         { id: 1, productName: 'Produto A', quantity: 2, price: 10 },
-//         { id: 2, productName: 'Produto B', quantity: 1, price: 15 },
-//         { id: 3, productName: 'Produto C', quantity: 3, price: 8 },
-//     ];
-
-//     return (
-//         <div>
-//             <h2>Gráfico de Pizza</h2>
-//             <canvas id="pizzaChart" width="400" height="400"></canvas>
-
-//             <h2>Listagem de Pedidos</h2>
-//             <ul>
-//                 {orders.map((order) => (
-//                     <li key={order.id}>
-//                         {order.productName} - Quantidade: {order.quantity} - Preço: {order.price}
-//                     </li>
-//                 ))}
-//             </ul>
-//         </div>
-//     );
-// };
-
-// export default AnalyzeData;
-
-import React from 'react';
+import { useLocation } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
+import './stylePages.scss';
+import { Sales } from '../models/orderTable';
 
 function AnalyzeData() {
-    const options = {
+    const location = useLocation();
+    const state = location.state;
+    const { celular, notebook, televisao } = state;
+    const { norte, nordeste, sul, sudeste, centroOeste } = state;
+
+    const optionsByRegion = {
         chart: {
-            type: 'pie' as 'pie', // Casting 'type' explicitamente
+            type: 'pie' as 'pie',
         },
-        labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-        theme: {
-            monochrome: {
-                enabled: true
-            }
-        },
-        plotOptions: {
-            pie: {
-                dataLabels: {
-                    offset: -5
-                }
-            }
-        },
-        title: {
-            text: "Monochrome Pie"
-        },
-        dataLabels: {
-            formatter(val: number, opts: any) {
-                const name = opts.w.globals.labels[opts.seriesIndex];
-                return `${name}: ${val.toFixed(1)}%`; // Retornando uma string concatenada
-            }
-        },
-        legend: {
-            show: false
-        }
+        labels: Object.keys(state).filter(key => key !== 'sales'), 
     };
 
-    const series = [25, 15, 44, 55, 41, 17];
+    const seriesByRegion = [norte, nordeste, sul, sudeste, centroOeste];
+
+    const optionsByDevice = {
+        chart: {
+            type: 'pie' as 'pie',
+        },
+        labels: ['Celular', 'Notebook', 'Televisão'],
+    };
+
+    const seriesByDevice = [celular, notebook, televisao];
 
     return (
-        <div style={{ width: '100%', maxWidth: '600px', margin: 'auto' }}>
-            <ReactApexChart options={options} series={series} type="pie" width="100%" />
+        <div>
+            <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                <div style={{ width: '35%' }}>
+                    <h2>Vendas por Região</h2>
+                    <ReactApexChart options={optionsByRegion} series={seriesByRegion} type="pie" width="100%" />
+                </div>
+                <div style={{ width: '35%' }}>
+                    <h2>Vendas por Tipo de Produto</h2>
+                    <ReactApexChart options={optionsByDevice} series={seriesByDevice} type="pie" width="100%" />
+                </div>
+
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div >
+                    <h2>Vendas</h2>
+                    <table >
+                        <thead>
+                            <tr>
+                                <th className='tableTH' >Nome do Cliente</th>
+                                <th className='tableTH'>Produto</th>
+                                <th className='tableTH'>Valor (R$)</th>
+                                <th className='tableTH'>Data de Entrega</th>
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {state.sales.map((sale: Sales, index: number) => (
+                                <tr key={index}>
+                                    <td style={{ padding: '10px' }}>{sale.name}</td>
+                                    <td style={{ padding: '10px' }}>{sale.product}</td>
+                                    <td style={{ padding: '10px' }}>{sale.finalValue.toFixed(2)}</td>
+                                    <td style={{ padding: '10px' }}>{sale.deliveryDate.toString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }
